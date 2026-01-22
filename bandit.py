@@ -1,6 +1,4 @@
 
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -49,8 +47,49 @@ class Agent:
         new_value = value + (reward - value) / n
         self.values[action] = new_value
 
+class UCBAgent:
+    def __init__(self, k_arms=10, c=2):
+        self.k_arms = k_arms
+        self.c = c
+        self.counts = np.zeros(k_arms)
+        self.values = np.zeros(k_arms)
+        self.total_counts = 0
 
-agent=Agent(k_arms=5, epsilon=0.1)
+    def choose_action(self):
+        for arm in range(self.k_arms):
+            if self.counts[arm] == 0:
+                return arm
+        ucb_values = self.values + self.c * np.sqrt(np.log(self.total_counts) / self.counts)
+        return np.argmax(ucb_values)
+    
+    def update(self, action, reward):
+        self.counts[action] += 1
+        self.total_counts += 1
+        n = self.counts[action]
+        value = self.values[action]
+        new_value = value + (reward - value) / n
+        self.values[action] = new_value
+    
+    def choose_action(self):
+        for arm in range(self.k_arms):
+            if self.counts[arm] == 0:
+                return arm
+        
+        t=np.sum(self.counts)
+
+        confidence=self.c*np.sqrt(np.log(t)/self.counts)
+        ucb_values=self.values+confidence
+        return np.argmax(ucb_values)
+
+    def update(self, action, reward):
+        self.counts[action]+=1
+        n=self.counts[action]
+        value=self.values[action]
+        new_value=value+(reward-value)/n
+        self.values[action]=new_value
+
+
+agent=UCBAgent(k_arms=5, c=2)
 total_rewards=[]
 
 n=int(input("Enter the number of episodes: "))
